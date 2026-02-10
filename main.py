@@ -15,7 +15,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 class SimulationRequest(BaseModel):
     reference: List[int]
     frames: int
@@ -83,16 +82,39 @@ def optimal(reference, frames):
 
     return faults, hits
 
-
 @app.post("/simulate")
 def simulate(data: SimulationRequest):
+
+    total = len(data.reference)
 
     fifo_f, fifo_h = fifo(data.reference, data.frames)
     lru_f, lru_h = lru(data.reference, data.frames)
     optimal_f, optimal_h = optimal(data.reference, data.frames)
 
-    return {
-        "fifo": {"faults": fifo_f, "hits": fifo_h},
-        "lru": {"faults": lru_f, "hits": lru_h},
-        "optimal": {"faults": optimal_f, "hits": optimal_h}
-    }
+    return [
+        {
+            "name": "FIFO",
+            "faults": fifo_f,
+            "hits": fifo_h,
+            "faultRate": fifo_f / total,
+            "executionTime": 0,
+            "complexity": "O(n)"
+        },
+        {
+            "name": "LRU",
+            "faults": lru_f,
+            "hits": lru_h,
+            "faultRate": lru_f / total,
+            "executionTime": 0,
+            "complexity": "O(n)"
+        },
+        {
+            "name": "Optimal",
+            "faults": optimal_f,
+            "hits": optimal_h,
+            "faultRate": optimal_f / total,
+            "executionTime": 0,
+            "complexity": "O(n²)"
+        }
+    ]
+
